@@ -1,28 +1,25 @@
-name: 📰 Daily Stock News (KakaoTalk)
+name: 주식 브리핑 자동 전송
 
 on:
   schedule:
-    - cron: '0 22 * * 1-5'  # 07:00 KST (UTC 22:00) 월~금
+    - cron: '0 22 * * 0-4'
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
-  send-kakao:
+  briefing:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
-      - run: pip install -r requirements.txt
-      - name: Send daily stock briefing to KakaoTalk
+
+      - name: 패키지 설치
+        run: pip install -r requirements.txt
+
+      - name: 브리핑 전송
+        run: python daily_briefing.py --now
         env:
-          KAKAO_REST_API_KEY:  ${{ secrets.KAKAO_REST_API_KEY }}
-          KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
-          GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY:   ${{ github.repository }}
-        run: python daily_stock_news.py
+          GMAIL_ADDRESS:       ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD:  ${{ secrets.GMAIL_APP_PASSWORD }}
