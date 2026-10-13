@@ -116,6 +116,10 @@ class App(tk.Tk):
     def __init__(self, rows, path):
         super().__init__()
         self.title("거래처 로그인 런처")
+        try:
+            self.iconbitmap(os.path.join(BASE, "icon.ico"))
+        except Exception:
+            pass  # 아이콘 파일이 없거나 윈도우가 아니면 기본 아이콘
         self.rows = rows
         self.auto_submit = tk.BooleanVar(value=True)
         self.status = tk.StringVar(value=f"계정표: {os.path.basename(path)}")
