@@ -53,11 +53,6 @@ def load_accounts(path):
             name=name, manager=str(ws.cell(r, 2).value or ""),
             mode=str(ws.cell(r, 3).value or ""), uid=str(uid).strip(),
             pw=str(pw).strip(), url=url))
-    # 계정은 없지만 링크만 있는 곳(예: 팀프레시)은 '열기만' 하는 버튼으로 둔다.
-    used = {x["url"] for x in rows}
-    for name, url in links.items():
-        if url not in used:
-            rows.append(dict(name=name, manager="", mode="링크만", uid="", pw="", url=url))
     return rows
 
 
