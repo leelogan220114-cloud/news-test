@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>풋살 매치데이 포스터</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #222; }
+  body { display: flex; justify-content: center; }
+  .poster {
+    width: 210mm; height: 297mm; position: relative; overflow: hidden;
+    background: radial-gradient(circle at 50% 38%, #123a2a 0%, #081a14 55%, #040c09 100%);
+    color: #fff; font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    text-align: center;
+  }
+  /* 코트 라인 */
+  .court { position: absolute; inset: 14mm; border: 1.2mm solid rgba(184,255,60,.35); }
+  .court::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 1.2mm solid rgba(184,255,60,.35); }
+  .court::after { content: ""; position: absolute; left: 50%; top: 50%; width: 60mm; height: 60mm; margin: -30mm 0 0 -30mm; border: 1.2mm solid rgba(184,255,60,.35); border-radius: 50%; }
+  .content { position: absolute; inset: 14mm; display: flex; flex-direction: column; align-items: center; padding: 16mm 10mm; z-index: 2; }
+  .tag { letter-spacing: 5mm; font-size: 5mm; color: #b8ff3c; font-weight: 700; }
+  h1 { font-size: 38mm; line-height: .9; font-weight: 900; font-style: italic; letter-spacing: -1mm; margin-top: 6mm; padding: 0 6mm 0 0;
+       background: linear-gradient(180deg, #fff 30%, #b8ff3c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { font-size: 7mm; font-weight: 700; margin-top: 4mm; letter-spacing: 2mm; }
+  .vs { margin-top: auto; margin-bottom: auto; display: flex; align-items: center; justify-content: center; gap: 8mm; width: 100%; }
+  .team { flex: 1; }
+  .badge { width: 46mm; height: 46mm; margin: 0 auto 5mm; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+           font-size: 24mm; font-weight: 900; font-style: italic; border: 2mm solid; }
+  .a .badge { background: #e63946; border-color: #ffd6d9; }
+  .b .badge { background: #1d6fe0; border-color: #cfe3ff; }
+  .team b { display: block; font-size: 10mm; white-space: nowrap; font-weight: 900; }
+  .team span { font-size: 4.5mm; opacity: .75; }
+  .x { font-size: 22mm; font-weight: 900; font-style: italic; color: #b8ff3c; text-shadow: 0 0 6mm rgba(184,255,60,.6); }
+  .info { width: 100%; background: #b8ff3c; color: #06130d; border-radius: 4mm; padding: 7mm 6mm; }
+  .info .date { font-size: 12mm; font-weight: 900; }
+  .info .place { font-size: 6mm; font-weight: 700; margin-top: 2mm; }
+  .note { margin-top: 7mm; font-size: 5mm; opacity: .9; }
+  .note em { color: #b8ff3c; font-style: normal; font-weight: 700; }
+  .foot { margin-top: 5mm; font-size: 3.6mm; opacity: .5; }
+  @media print { html, body { background: none; } }
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="court"></div>
+  <div class="content">
+    <div class="tag">FUTSAL LEAGUE</div>
+    <h1>MATCH<br>DAY</h1>
+    <div class="sub">이번 주, 승부는 코트에서</div>
+
+    <div class="vs">
+      <div class="team a"><div class="badge">A</div><b>레드 FC</b><span>(팀명 수정)</span></div>
+      <div class="x">VS</div>
+      <div class="team b"><div class="badge">B</div><b>블루 FC</b><span>(팀명 수정)</span></div>
+    </div>
+
+    <div class="info">
+      <div class="date">0월 0일 (요일) 00:00</div>
+      <div class="place">○○ 풋살파크 B구장</div>
+    </div>
+    <div class="note">참가비 <em>0,000원</em> · 조끼·간식 준비 · 응원 환영!</div>
+    <div class="foot">※ 시안입니다. 날짜·장소·팀명은 실제 정보로 교체 예정</div>
+  </div>
+</div>
+</body>
+</html>
