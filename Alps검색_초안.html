@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alps 거래처코드 검색</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#6b7280;--line:#e3e6ec;--pri:#1f6feb;--hit:#fff1a8}
+  @media (prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1c2027;--tx:#e8eaee;--mut:#98a1b0;--line:#2c323c;--pri:#5b9bff;--hit:#6b5b00}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Malgun Gothic",system-ui,sans-serif}
+  .wrap{max-width:1100px;margin:0 auto;padding:20px 16px}
+  h1{font-size:20px;margin:0 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input[type=search],input[type=text],select,button{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--tx)}
+  #q{flex:1;min-width:220px;font-size:17px}
+  button{cursor:pointer}button.pri{background:var(--pri);color:#fff;border-color:var(--pri)}
+  .mut{color:var(--mut);font-size:13px}
+  #drop{border:2px dashed var(--line);text-align:center;padding:26px;border-radius:10px;cursor:pointer}
+  #drop.on{border-color:var(--pri)}
+  .tw{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+  table{border-collapse:collapse;width:100%;white-space:nowrap}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{position:sticky;top:0;background:var(--card);z-index:1;font-size:13px}
+  tr:hover td{background:rgba(127,127,127,.08)}
+  mark{background:var(--hit);color:inherit;border-radius:3px;padding:0 1px}
+  td.code{font-variant-numeric:tabular-nums}
+  .copy{cursor:pointer;color:var(--pri);margin-left:6px;font-size:12px}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Alps 거래처코드 검색</h1>
+
+  <div class="card" id="loadBox">
+    <div id="drop">엑셀 파일(Alps마스터_○○.xlsx)을 여기로 끌어놓거나 눌러서 선택하세요
+      <div class="mut">파일은 내 컴퓨터 안에서만 열리고, 어디로도 전송되지 않습니다.</div></div>
+    <input type="file" id="file" accept=".xlsx,.xls,.csv" class="hide">
+  </div>
+
+  <div id="main" class="hide">
+    <div class="card">
+      <div class="row">
+        <input type="search" id="q" placeholder="거래처코드 / 우리 코드 / 거래처명 입력 (여러 개는 줄바꿈·쉼표로 구분)" autofocus>
+        <select id="col" title="검색할 열"></select>
+        <select id="sheet" title="시트"></select>
+        <label class="mut"><input type="checkbox" id="exact"> 정확히 일치만</label>
+        <button id="clr">지우기</button>
+        <button id="dl" class="pri">결과 엑셀로 저장</button>
+      </div>
+      <div class="mut" style="margin-top:8px" id="info"></div>
+    </div>
+    <div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+  </div>
+</div>
+
+<script>
+let rows=[],head=[],sheets={},curSheet="",shown=[];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const norm=s=>String(s??"").trim().toLowerCase();
+
+// 머리글 행 자동 찾기: 앞 10행 중 값이 가장 많이 채워진 행
+function load(ws){
+  const a=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:false});
+  let hi=0,best=-1;
+  for(let i=0;i<Math.min(10,a.length);i++){const n=a[i].filter(v=>String(v).trim()!=="").length;if(n>best){best=n;hi=i}}
+  head=a[hi].map((h,i)=>String(h).trim()||("열"+(i+1)));
+  rows=a.slice(hi+1).filter(r=>r.some(v=>String(v).trim()!==""));
+  const sel=$("col");
+  sel.innerHTML='<option value="-1">전체 열</option>'+head.map((h,i)=>`<option value="${i}">${esc(h)}</option>`).join("");
+  // 코드 열이 있으면 기본 선택은 전체 열 유지(두 코드 동시 검색 가능)
+  $("th").innerHTML="<tr><th>#</th>"+head.map(h=>`<th>${esc(h)}</th>`).join("")+"</tr>";
+  search();
+}
+
+function open(file){
+  const fr=new FileReader();
+  fr.onload=e=>{
+    const wb=XLSX.read(e.target.result,{type:"array"});
+    sheets=wb.Sheets;
+    $("sheet").innerHTML=wb.SheetNames.map(n=>`<option>${esc(n)}</option>`).join("");
+    curSheet=wb.SheetNames[0];
+    $("loadBox").classList.add("hide");$("main").classList.remove("hide");
+    load(sheets[curSheet]);$("q").focus();
+  };
+  fr.readAsArrayBuffer(file);
+}
+
+function search(){
+  const terms=$("q").value.split(/[\n,;\t]+/).map(norm).filter(Boolean);
+  const c=+$("col").value,exact=$("exact").checked;
+  const hit=(cell,t)=>{const v=norm(cell);return exact?v===t:v.includes(t)};
+  let out=rows.map((r,i)=>({r,i}));
+  if(terms.length){
+    out=out.filter(({r})=>terms.some(t=>(c<0?r:[r[c]]).some(x=>hit(x,t))));
+    // 정확히 일치하는 행을 위로
+    const score=({r})=>terms.some(t=>(c<0?r:[r[c]]).some(x=>norm(x)===t))?0:1;
+    out.sort((a,b)=>score(a)-score(b)||a.i-b.i);
+  }
+  shown=out;
+  const lim=500,view=out.slice(0,lim);
+  const mark=v=>{
+    let s=esc(v);
+    terms.forEach(t=>{const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/&/g,"&amp;"),"gi");s=s.replace(re,m=>`<mark>${m}</mark>`)});
+    return s;
+  };
+  $("tb").innerHTML=view.map(({r,i})=>`<tr><td class="mut">${i+2}</td>`+
+    head.map((_,k)=>`<td>${terms.length&&(c<0||c===k)?mark(r[k]??""):esc(r[k]??"")}</td>`).join("")+"</tr>").join("");
+  $("info").textContent=`전체 ${rows.length.toLocaleString()}건 중 ${out.length.toLocaleString()}건`+(out.length>lim?` (화면에는 앞 ${lim}건만 표시, 저장하면 전체가 담깁니다)`:"")+
+    (terms.length>1?` · 입력한 코드 ${terms.length}개`:"");
+}
+
+function save(){
+  const ws=XLSX.utils.aoa_to_sheet([head,...shown.map(x=>x.r)]);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"검색결과");
+  XLSX.writeFile(wb,"Alps검색결과.xlsx");
+}
+
+$("drop").onclick=()=>$("file").click();
+$("file").onchange=e=>e.target.files[0]&&open(e.target.files[0]);
+["dragover","dragenter"].forEach(t=>$("drop").addEventListener(t,e=>{e.preventDefault();$("drop").classList.add("on")}));
+["dragleave","drop"].forEach(t=>$("drop").addEventListener(t,e=>{e.preventDefault();$("drop").classList.remove("on")}));
+$("drop").addEventListener("drop",e=>e.dataTransfer.files[0]&&open(e.dataTransfer.files[0]));
+$("q").oninput=search;$("col").onchange=search;$("exact").onchange=search;
+$("sheet").onchange=e=>{curSheet=e.target.value;load(sheets[curSheet])};
+$("clr").onclick=()=>{$("q").value="";search();$("q").focus()};
+$("dl").onclick=save;
+</script>
+</body>
+</html>
