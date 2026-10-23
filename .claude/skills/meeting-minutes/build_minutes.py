@@ -81,14 +81,8 @@ def make_minutes(d, path):
 def make_report(d, path):
     R = d["report"]; s = Sheet([14, 22, 22, 22, 22]); ws = s.ws
     s.title(R["title"])
-    r0 = s.r
-    ws.merge_cells(start_row=r0, start_column=1, end_row=r0 + 1, end_column=2)
-    c = ws.cell(r0, 1, f'작성일: {d["date"]}\n{R.get("dept","")} / {d.get("writer","")}\n수신: {R.get("to","")}')
-    c.font = Font(name=F, size=10); c.alignment = Alignment(wrap_text=True, vertical="center")
-    for k, t in enumerate(["담당", "팀장", "본부장"]):
-        h = ws.cell(r0, 3 + k, t); h.font = Font(name=F, size=10, bold=True); h.fill = HF
-        h.alignment = Alignment(horizontal="center", vertical="center"); h.border = BD; ws.cell(r0 + 1, 3 + k).border = BD
-    ws.row_dimensions[r0].height = 18; ws.row_dimensions[r0 + 1].height = 34; s.r = r0 + 3
+    s.merge(1, 5, f'작성일: {d["date"]}   |   {R.get("dept","")} / {d.get("writer","")}   |   수신: {R.get("to","")}', border=False, align="right")
+    s.height(22); s.r += 2
 
     def rows(items):
         for a, b in items:
