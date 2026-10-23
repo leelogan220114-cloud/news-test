@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""회의 내용 JSON -> 회의록 + 보고서 엑셀(A4 1장씩)을 날짜_주제 회의 폴더에 저장.
+"""회의 내용 JSON -> 엑셀 1개(시트 2개: 보고서, 회의록, 각각 A4 세로 1장)를 날짜_주제 회의 폴더에 저장.
 
 사용: python3 build_minutes.py 회의.json [--out-root 저장위치]
-저장 위치: <out-root>/YYMMDD_<주제> 회의/YYMMDD_회의록_<주제>.xlsx, YYMMDD_보고서_<주제>.xlsx
+저장: <out-root>/YYMMDD_<주제> 회의/YYMMDD_<주제>_보고서_회의록.xlsx
+JSON의 "card_image"(명함 사진 경로)가 있으면 보고서 시트 오른쪽 위에 넣는다.
+확인 필요 항목(unclear)은 파일에 넣지 않고 화면에 출력한다(답변에서 알려 줄 것).
 """
-import argparse, json, os, sys
+import argparse, json, os
 from openpyxl import Workbook
+from openpyxl.drawing.image import Image
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 
 F = "맑은 고딕"
@@ -15,8 +18,8 @@ HF = PatternFill("solid", fgColor="F2F2F2")
 
 
 class Sheet:
-    def __init__(self, widths):
-        self.wb = Workbook(); self.ws = self.wb.active
+    def __init__(self, ws, widths):
+        self.ws = ws
         for c, w in zip("ABCDE", widths): self.ws.column_dimensions[c].width = w
         self.r = 1; self.ncol = len(widths)
 
@@ -44,18 +47,17 @@ class Sheet:
         self.merge(1, self.ncol, "\n".join("· " + s for s in items), border=False)
         self.height(per * max(len(items), 1) + 8); self.r += 2
 
-    def finish(self, path):
+    def finish(self):
         ws = self.ws
         ws.page_setup.paperSize = 9; ws.page_setup.orientation = "portrait"
         ws.page_setup.fitToWidth = 1; ws.page_setup.fitToHeight = 1
         ws.sheet_properties.pageSetUpPr.fitToPage = True
         ws.print_area = f"A1:{'ABCDE'[self.ncol-1]}{self.r}"; ws.print_options.horizontalCentered = True
         ws.page_margins.left = ws.page_margins.right = 0.5; ws.page_margins.top = ws.page_margins.bottom = 0.6
-        self.wb.save(path)
 
 
-def make_minutes(d, path):
-    s = Sheet([16, 44, 30, 22]); ws = s.ws
+def make_minutes(ws, d):
+    s = Sheet(ws, [16, 44, 30, 22])
     s.title("회의록  |  " + d["title"])
     s.cell(1, "작성일", True, HF, "center"); s.cell(2, f'{d["date"]} (장소: {d.get("place") or "확인 필요"})')
     s.cell(3, "작성자 / 참석자", True, HF, "center"); s.cell(4, f'{d.get("writer","")} / {d.get("attendees") or "확인 필요"}'); s.height(36); s.r += 2
@@ -73,22 +75,33 @@ def make_minutes(d, path):
     s.height(20); s.r += 1
     for n, (t, w, dd) in enumerate(d["actions"], 1):
         s.cell(1, n, align="center"); s.cell(2, t); s.cell(3, w or "확인 필요"); s.cell(4, dd or "확인 필요"); s.height(32); s.r += 1
-    s.r += 1
-    s.sec("4. 확인 필요 (녹취 변환 오류 가능)"); s.lines(d["unclear"], 20)
-    s.finish(path)
+    s.finish()
 
 
-def make_report(d, path):
-    R = d["report"]; s = Sheet([14, 22, 22, 22, 22]); ws = s.ws
+def make_report(ws, d, base):
+    R = d["report"]; s = Sheet(ws, [14, 22, 22, 22, 22])
     s.title(R["title"])
-    s.merge(1, 5, f'작성일: {d["date"]}   |   {R.get("dept","")} / {d.get("writer","")}   |   수신: {R.get("to","")}', border=False, align="right")
-    s.height(22); s.r += 2
+    card = d.get("card_image")
+    if card and not os.path.isabs(card): card = os.path.join(base, card)
+    has_card = bool(card and os.path.exists(card))
+    r0 = s.r
+    ws.merge_cells(start_row=r0, start_column=1, end_row=r0 + 1, end_column=2)
+    c = ws.cell(r0, 1, f'작성일: {d["date"]}\n{R.get("dept","")} / {d.get("writer","")}\n수신: {R.get("to","")}')
+    c.font = Font(name=F, size=10); c.alignment = Alignment(wrap_text=True, vertical="center")
+    ws.row_dimensions[r0].height = 18 if not has_card else 24
+    ws.row_dimensions[r0 + 1].height = 34 if not has_card else 40
+    if has_card:
+        img = Image(card); ratio = img.height / img.width
+        img.width = 270; img.height = int(270 * ratio); img.anchor = f"D{r0 - 1}"
+        ws.add_image(img)
+        ws.row_dimensions[r0 - 1].height = 24; ws.row_dimensions[r0 + 2].height = 36
+    s.r = r0 + 3
 
     def rows(items):
         for a, b in items:
             s.cell(1, a, True, HF, "center"); s.merge(2, 5, b); s.height(max(26, 15 * (len(b) // 46 + 1) + 6)); s.r += 1
         s.r += 1
-    s.sec("1. 개요"); rows(R["overview"])
+    s.sec("1. 방문 개요"); rows(R["overview"])
     s.sec("2. 주요 내용"); rows(R["main"])
     s.sec("3. 검토 의견 (안)"); rows(R["opinion"])
     s.sec("4. 향후 계획 (안)")
@@ -96,9 +109,7 @@ def make_report(d, path):
     s.cell(4, "담당", True, HF, "center"); s.cell(5, "기한", True, HF, "center"); s.r += 1
     for n, (t, w, dd) in enumerate(R["plan"], 1):
         s.cell(1, n, align="center"); s.merge(2, 3, t); s.cell(4, w or "확인 필요"); s.cell(5, dd or "확인 필요"); s.height(32); s.r += 1
-    s.r += 1
-    s.sec("5. 확인 필요"); s.lines(d["unclear"], 20)
-    s.finish(path)
+    s.finish()
 
 
 def main():
@@ -108,9 +119,14 @@ def main():
     ymd = d["date"].replace("-", "")[2:]
     folder = os.path.join(a.out_root, f'{ymd}_{d["topic"]} 회의')
     os.makedirs(folder, exist_ok=True)
-    p1 = os.path.join(folder, f'{ymd}_회의록_{d["topic"]}.xlsx'); p2 = os.path.join(folder, f'{ymd}_보고서_{d["topic"]}.xlsx')
-    make_minutes(d, p1); make_report(d, p2)
-    print(p1); print(p2)
+    wb = Workbook(); ws1 = wb.active; ws1.title = "보고서"; ws2 = wb.create_sheet("회의록")
+    make_report(ws1, d, os.path.dirname(os.path.abspath(a.json_path))); make_minutes(ws2, d)
+    path = os.path.join(folder, f'{ymd}_{d["topic"]}_보고서_회의록.xlsx')
+    wb.save(path)
+    print("저장:", path)
+    if d.get("unclear"):
+        print("확인 필요:")
+        for u in d["unclear"]: print(" -", u)
 
 
 if __name__ == "__main__":
