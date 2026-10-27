@@ -25,8 +25,8 @@ description: 클로바(녹음 텍스트)를 받으면 회의록과 보고서를 
    - 숫자(단가·수량·매출·날짜)는 녹취 그대로 적고, 변환 오류 가능성이 있으면 `unclear`에 넣는다. 계산이 있으면 근거(식)를 함께 적는다.
    - 참석자가 "참석자 1~N"뿐이면 이름을 추측하지 않는다. 역할은 문맥으로 추정했다고 표시한다.
    - 보고서의 "검토 의견"은 제안(안)임을 표시한다. 사용자가 팀장 대신 참석한 경우 개요에 적는다.
-3. 실행: `python3 .claude/skills/meeting-minutes/build_minutes.py meeting.json --out-root "<클로드 코워크 경로>/회의록"`
-   - 필요하면 `pip install openpyxl`.
+3. 실행(작업 폴더가 `클로드 코워크`일 때): `python .claude/skills/meeting-minutes/build_minutes.py meeting.json --out-root 회의록` (맥/리눅스는 `python3`). 결과는 `회의록\YYMMDD_<주제> 회의\`에 생긴다.
+   - 필요하면 `pip install openpyxl`. 실행 후 `meeting.json`은 지운다(남기려면 사용자에게 먼저 묻는다).
 4. 검증: LibreOffice가 있으면 PDF로 바꿔 1쪽인지 확인한다. 못 하면 "확인하지 못했다"고 말한다.
 5. 답변 형식: 결론 먼저. "확인한 것 / 확인하지 못한 것" 구분, 임의로 정한 것만 알려 준다. 파일 이름이나 기존 파일을 바꾸기 전에는 먼저 묻는다.
 
