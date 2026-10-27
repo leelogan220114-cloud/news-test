@@ -57,7 +57,7 @@ class Sheet:
 def make_minutes(ws, d):
     s = Sheet(ws, [16, 44, 30, 22])
     s.title("회의록  |  " + d["title"])
-    s.cell(1, "작성일", True, HF, "center"); s.cell(2, f'{d["date"]} (장소: {d.get("place") or "확인 필요"})')
+    s.cell(1, "작성일", True, HF, "center"); s.cell(2, f'{d.get("written_date", d["date"])} (장소: {d.get("place") or "확인 필요"})')
     s.cell(3, "작성자 / 참석자", True, HF, "center"); s.cell(4, f'{d.get("writer","")} / {d.get("attendees") or "확인 필요"}'); s.height(36); s.r += 2
     s.sec("1. 결론 (요약)"); s.lines(d["summary"])
     s.sec("2. 논의 내용")
@@ -81,7 +81,7 @@ def make_report(ws, d):
     s.title(R["title"])
     r0 = s.r
     ws.merge_cells(start_row=r0, start_column=1, end_row=r0 + 1, end_column=2)
-    c = ws.cell(r0, 1, f'작성일: {d["date"]}\n{R.get("dept","")} / {d.get("writer","")}\n수신: {R.get("to","")}')
+    c = ws.cell(r0, 1, f'작성일: {d.get("written_date", d["date"])}\n{R.get("dept","")} / {d.get("writer","")}\n수신: {R.get("to","")}')
     c.font = Font(name=F, size=10); c.alignment = Alignment(wrap_text=True, vertical="center")
     ws.row_dimensions[r0].height = 18; ws.row_dimensions[r0 + 1].height = 34
     s.r = r0 + 3
