@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>풋살 매치데이 포스터 (위트 버전)</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #222; }
+  body { display: flex; justify-content: center; }
+  .poster {
+    width: 210mm; height: 297mm; position: relative; overflow: hidden; color: #fff; text-align: center;
+    font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    background: linear-gradient(180deg, #0b1f4a 0%, #14357a 38%, #0a1a3d 100%);
+  }
+  /* 전광판 느낌의 상단 */
+  .top { position: absolute; left: 0; right: 0; top: 0; height: 34mm; background: #0a1a3d; border-bottom: 1mm solid #ff8a1f;
+         display: flex; align-items: center; justify-content: space-between; padding: 0 12mm; font-weight: 800; letter-spacing: 1.5mm; font-size: 4.2mm; }
+  .top .vs { color: #ff8a1f; font-style: italic; font-size: 7mm; letter-spacing: 0; }
+  /* 인용구 */
+  .quote { position: absolute; left: 12mm; top: 44mm; text-align: left; font-size: 6.4mm; font-weight: 700; line-height: 1.5; text-shadow: 0 1mm 3mm rgba(0,0,0,.6); z-index: 3; }
+  .quote i { display: block; font-style: normal; font-size: 14mm; line-height: .7; color: #ff8a1f; font-family: Georgia, serif; }
+  /* 관중석 (점으로 표현) */
+  .crowd { position: absolute; left: 0; right: 0; bottom: 0; top: 130mm;
+    background:
+      radial-gradient(circle at 50% 0, rgba(255,255,255,.0) 0, rgba(0,0,0,.0) 40%),
+      radial-gradient(circle, #ff8a1f 0 .9mm, transparent 1.1mm) 0 0 / 7mm 7mm,
+      radial-gradient(circle, #ffffff 0 .8mm, transparent 1mm) 3.5mm 3.5mm / 7mm 7mm,
+      #0a1a3d;
+    opacity: .55; -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 35%); mask-image: linear-gradient(180deg, transparent 0, #000 35%); }
+  /* 깃발 */
+  .flag { position: absolute; left: 30mm; top: 92mm; width: 150mm; height: 88mm; transform: rotate(-14deg) skewY(5deg); z-index: 2;
+    background: repeating-linear-gradient(115deg, #ff8a1f 0 14mm, #ffffff 14mm 24mm, #14357a 24mm 38mm);
+    box-shadow: 0 6mm 10mm rgba(0,0,0,.5); border-radius: 3mm; display: flex; align-items: center; justify-content: center; }
+  .flag span { font-size: 27mm; font-weight: 900; font-style: italic; letter-spacing: -1mm; color: #fff; -webkit-text-stroke: 1.6mm #0a1a3d; paint-order: stroke fill; text-shadow: 0 2mm 0 #0a1a3d; }
+  .pole { position: absolute; left: 24mm; top: 138mm; width: 3mm; height: 50mm; background: #cfd6e6; transform: rotate(-4deg); z-index: 1; }
+  /* 타이틀 */
+  .title { position: absolute; left: 0; right: 0; top: 188mm; z-index: 4; }
+  .title h1 { font-family: "Times New Roman", Georgia, "Noto Serif KR", serif; font-weight: 400; font-size: 31mm; letter-spacing: -.5mm; text-shadow: 0 2mm 5mm rgba(0,0,0,.6); }
+  .title h1 b { font-size: 41mm; font-weight: 400; }
+  .copy { margin-top: 2mm; font-size: 6.2mm; font-weight: 800; color: #ffd9a8; letter-spacing: .5mm; text-shadow: 0 1mm 3mm rgba(0,0,0,.7); }
+  .copy small { display: block; margin-top: 2mm; font-size: 4.2mm; font-weight: 600; color: #fff; opacity: .9; }
+  /* 하단 정보 */
+  .info { position: absolute; left: 0; right: 0; bottom: 0; height: 36mm; z-index: 5; background: linear-gradient(180deg, rgba(10,26,61,.0), #0a1a3d 45%);
+          display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 9mm; }
+  .info .when { font-size: 6.6mm; font-weight: 800; }
+  .info .when em { color: #ff8a1f; font-style: normal; }
+  .info .where { margin-top: 2mm; font-size: 4.3mm; opacity: .92; }
+  .info .tiny { margin-top: 1.6mm; font-size: 3.4mm; opacity: .6; }
+  @media print { html, body { background: none; } }
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="top"><span>푸드올마켓 사내 친목 리그</span><span class="vs">VS</span><span>FOODALL LEAGUE 2026</span></div>
+
+  <div class="quote"><i>“</i>푸드올마켓, 그 다섯 글자를<br>내일 아침 근육통에 새긴다</div>
+
+  <div class="pole"></div>
+  <div class="flag"><span>FOODALL</span></div>
+  <div class="crowd"></div>
+
+  <div class="title">
+    <h1><b>M</b>ATCHDAY</h1>
+    <div class="copy">2~3개월 만의 복귀전, 몸은 기억 못 해도 열정은 기억한다
+      <small>※ 오늘의 승패보다 중요한 건 내일 계단 내려가기</small></div>
+  </div>
+
+  <div class="info">
+    <div class="when">10월 14일 (수) <em>오후 7시 ~ 9시</em> · 이천축구센터 실내구장</div>
+    <div class="where">경기 이천시 백사면 청백리로 125-88</div>
+    <div class="tiny">실내구장 예약 완료 · 스트레칭은 각자 · 퇴근 후 집합</div>
+  </div>
+</div>
+</body>
+</html>
